@@ -2,27 +2,30 @@
 import React, { useState, useEffect } from "react";
 import { NeuralNetwork } from "brain.js";
 import { Bar } from "react-chartjs-2";
-import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from "chart.js";
+import {
+    Chart as ChartJS,
+    CategoryScale,
+    LinearScale,
+    BarElement,
+    Title,
+    Tooltip,
+    Legend
+} from "chart.js";
 import "bootstrap/dist/css/bootstrap.min.css";
+import PredictionForm from "./components/PredictionForm";
+import Feedback from "./components/Feedback";
 import "./App.css";
 
 // Register Chart.js components
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 const App = () => {
-    // ✅ State for form inputs, predictions, and model training
-    const [formData, setFormData] = useState({
-        area: "",
-        bedrooms: "",
-        bathrooms: "",
-        location: "",
-        age: ""
-    });
-
     const [trainedNet, setTrainedNet] = useState(null);
     const [predictedPrice, setPredictedPrice] = useState(null);
     const [data, setData] = useState([]);
     const [chartData, setChartData] = useState(null);
+    const [error, setError] = useState("");
+    const [feedbackList, setFeedbackList] = useState([]); // Store feedback responses
 
     // ✅ Load model from LocalStorage or train a new model
     useEffect(() => {
@@ -71,18 +74,23 @@ const App = () => {
         setTrainedNet(net);
     };
 
-    // ✅ Handle input changes
-    const handleChange = (e) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
-    };
-
-    // ✅ Predict property price & update chart
-    const handlePredict = () => {
+    // ✅ Predict property price
+    const handlePredict = (formData) => {
         if (!trainedNet) {
             console.error("❌ Model is not trained yet.");
             alert("Model is not trained yet. Please train it first.");
             return;
         }
+
+        // ✅ Input Validation
+        for (const key in formData) {
+            if (!formData[key] || isNaN(formData[key])) {
+                setError(`Invalid input: ${key} is required.`);
+                return;
+            }
+        }
+
+        setError("");
 
         const input = {
             area: parseFloat(formData.area) / 10000,
@@ -110,7 +118,7 @@ const App = () => {
                     {
                         label: "Price ($1000s)",
                         data: [
-                            data.length > 0 ? data[0]["Price (in $1000)"] : 0, // Example actual price
+                            data.length > 0 ? data[0]["Price (in $1000)"] : 0,
                             predicted
                         ],
                         backgroundColor: ["rgba(75, 192, 192, 0.6)", "rgba(255, 99, 132, 0.6)"]
@@ -121,6 +129,12 @@ const App = () => {
             console.error("❌ Prediction failed: No output from model.");
             alert("Prediction failed. Please check your input values.");
         }
+    };
+
+    // ✅ Handle feedback submission
+    const handleFeedbackSubmit = (feedback) => {
+        setFeedbackList([...feedbackList, feedback]);
+        console.log("📌 New Feedback Received:", feedback);
     };
 
     // ✅ Clear stored model
@@ -136,25 +150,14 @@ const App = () => {
             <h1 className="text-white mb-4">🏡 Real Estate Price Prediction</h1>
 
             <div className="card p-4 shadow-lg">
-                <form className="mb-3">
-                    <div className="row">
-                        <div className="col-md-6">
-                            <input type="number" className="form-control mb-3" name="area" placeholder="Area (sq ft)" onChange={handleChange} />
-                            <input type="number" className="form-control mb-3" name="bedrooms" placeholder="Bedrooms" onChange={handleChange} />
-                            <input type="number" className="form-control mb-3" name="bathrooms" placeholder="Bathrooms" onChange={handleChange} />
-                        </div>
-                        <div className="col-md-6">
-                            <input type="number" className="form-control mb-3" name="location" placeholder="Location (Encoded)" onChange={handleChange} />
-                            <input type="number" className="form-control mb-3" name="age" placeholder="Age of Property" onChange={handleChange} />
-                        </div>
-                    </div>
+                
+                {/* Prediction Form Component */}
+                <PredictionForm onPredict={handlePredict} />
 
-                    <button type="button" className="btn btn-success w-100" onClick={handlePredict}>
-                        Predict Price
-                    </button>
-                </form>
+                {error && <p className="text-danger mt-2">{error}</p>}
 
                 {predictedPrice && <h2 className="text-success mt-3">Predicted Price: ${predictedPrice.toFixed(2)}</h2>}
+                
 
                 {chartData && (
                     <div className="mt-4">
@@ -168,10 +171,24 @@ const App = () => {
                 <button type="button" className="btn btn-danger mt-3" onClick={clearModel}>
                     Clear Stored Model
                 </button>
+
+                {/* Feedback Component */}
+                <Feedback onSubmitFeedback={handleFeedbackSubmit} />
+
+                {/* Display user feedback */}
+                {feedbackList.length > 0 && (
+                    <div className="mt-3">
+                        <h4>🗣 User Feedback</h4>
+                        <ul className="list-group">
+                            {feedbackList.map((feedback, index) => (
+                                <li key={index} className="list-group-item">{feedback}</li>
+                            ))}
+                        </ul>
+                    </div>
+                )}
             </div>
         </div>
     );
 };
 
 export default App;
-
