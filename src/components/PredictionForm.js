@@ -64,22 +64,22 @@ const PredictionForm = ({ onPredict }) => {
     }
 
     if (formData.area < 100 || formData.area > 10000) {
-      setError("⚠️ Area must be between 100 and 10,000 sq ft.");
+      setError("⚠️ Area must be between 100 to 10,000 sq ft.");
       return;
     }
 
     if (formData.bedrooms < 1 || formData.bedrooms > 5) {
-      setError("⚠️ Bedrooms must be between 1 and 5.");
+      setError("⚠️ Bedrooms must be between 1 to 5.");
       return;
     }
 
     if (formData.bathrooms < 1 || formData.bathrooms > 5) {
-      setError("⚠️ Bathrooms must be between 1 and 5.");
+      setError("⚠️ Bathrooms must be between 1 to 5.");
       return;
     }
 
     if (formData.age < 1 || formData.age > 30) {
-      setError("⚠️ Property age must be between 1 and 30 years.");
+      setError("⚠️ Property age must be between 1 to 30 years.");
       return;
     }
     if (!formData.location || isNaN(formData.location)) {
