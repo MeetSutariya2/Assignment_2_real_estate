@@ -147,7 +147,7 @@ const App = () => {
 
     return (
         <div className="container text-center mt-5">
-            <h1 className="text-white mb-4">🏡 Real Estate Price Prediction</h1>
+            <h1 className="text-white mb-4">Real Estate Price Prediction</h1>
 
             <div className="card p-4 shadow-lg">
                 

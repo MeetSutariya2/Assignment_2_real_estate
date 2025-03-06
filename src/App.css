@@ -1,6 +1,6 @@
 /* 🌟 Global Styles */
 body {
-  background: url('/real_estate_bg/real_estate_img1.png') no-repeat center center fixed;
+  background: url('/real_estate_bg/real_estate_img2.png') no-repeat center center fixed;
   background-size: cover;
   font-family: 'Poppins', sans-serif;
 }
@@ -14,7 +14,10 @@ body {
 
 /* 🌟 Card Design */
 .card {
-  background: rgba(229, 244, 253, 0.95);
+  
+  /* background-image: url('/real_estate_bg/real_estate_img3.png'); Add your image here */
+  background-size: cover;
+  background-position: center;
   border-radius: 15px;
   padding: 25px;
   box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
@@ -109,6 +112,21 @@ input:focus {
   background: rgba(240, 240, 240, 0.95);
   border-radius: 10px;
   box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.1);
+}
+/* Make dropdown same size as input fields */
+select {
+  width: 100%;
+  padding: 10px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  font-size: 16px;
+  margin-bottom: 15px;
+  background-color: white;
+}
+
+/* Ensure dropdown height matches input fields */
+input, select {
+  height: 40px;
 }
 
 /* 🌟 Feedback Section */
