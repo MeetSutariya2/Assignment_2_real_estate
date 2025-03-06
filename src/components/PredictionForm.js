@@ -4,9 +4,9 @@ import "./PredictionForm.css";
 
 // ✅ Corrected location mapping (Numbers stored, Names displayed)
 const locations = [
-  { id: 1, name: "Toronto" },
-  { id: 2, name: "Mississuga" },
-  { id: 3, name: "Brampton" },
+  { id: 1, name: "Downtown" },
+  { id: 2, name: "Suburb" },
+  { id: 3, name: "Rural" },
  
 ];  
 
