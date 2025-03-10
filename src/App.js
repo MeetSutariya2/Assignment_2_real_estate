@@ -25,9 +25,9 @@ const App = () => {
     const [data, setData] = useState([]);
     const [chartData, setChartData] = useState(null);
     const [error, setError] = useState("");
-    const [feedbackList, setFeedbackList] = useState([]); // Store feedback responses
+    const [feedbackList, setFeedbackList] = useState([]);
 
-    // ✅ Load model from LocalStorage or train a new model
+    // ✅ Load and Train Model or Fetch from LocalStorage
     useEffect(() => {
         const storedModel = localStorage.getItem("trainedModel");
 
@@ -47,7 +47,7 @@ const App = () => {
         }
     }, []);
 
-    // ✅ Train the Neural Network
+    // ✅ Train Neural Network
     const trainModel = (dataset) => {
         console.log("📌 Training Model with Data:", dataset);
 
@@ -64,17 +64,41 @@ const App = () => {
             output: { price: item["Price (in $1000)"] / 1000 }
         }));
 
-        net.train(formattedData, { iterations: 2000, errorThresh: 0.005 });
+        net.train(formattedData, { iterations: 3000, errorThresh: 0.005 });
 
         console.log("✅ Model Training Completed");
-
-        // ✅ Save trained model in LocalStorage
         localStorage.setItem("trainedModel", JSON.stringify(net.toJSON()));
-
         setTrainedNet(net);
     };
 
-    // ✅ Predict property price
+    // ✅ Helper: Find Closest Actual Price
+    const findClosestMatch = (formData) => {
+        let closest = null;
+        let minDiff = Infinity;
+
+        data.forEach(item => {
+            const itemArea = item["Area (sq ft)"] * 10000;
+            const itemBedrooms = item.Bedrooms * 10;
+            const itemBathrooms = item.Bathrooms * 10;
+            const itemLocation = item.Location * 5;
+            const itemAge = item["Age of Property (years)"] * 100;
+
+            const diff = Math.abs(itemArea - formData.area) +
+                Math.abs(itemBedrooms - formData.bedrooms) +
+                Math.abs(itemBathrooms - formData.bathrooms) +
+                Math.abs(itemLocation - formData.location) +
+                Math.abs(itemAge - formData.age);
+
+            if (diff < minDiff) {
+                minDiff = diff;
+                closest = item;
+            }
+        });
+
+        return closest ? closest["Price (in $1000)"] * 1000 : 0;
+    };
+
+    // ✅ Handle Predict
     const handlePredict = (formData) => {
         if (!trainedNet) {
             console.error("❌ Model is not trained yet.");
@@ -100,27 +124,27 @@ const App = () => {
             age: parseFloat(formData.age) / 100
         };
 
-        console.log("📌 User Input:", input);
+        console.log("📌 User Input (Normalized):", input);
 
         const output = trainedNet.run(input);
-
         console.log("📌 Raw Prediction Output:", output);
 
         if (output && output.price) {
-            const predicted = output.price * 1000;
-            setPredictedPrice(predicted);
-            console.log("✅ Predicted Price:", predicted);
+            const predicted = output.price * 1000000; // To USD
+            setPredictedPrice(predicted.toFixed(2));
+            console.log("✅ Predicted Price (USD):", predicted);
 
-            // ✅ Update Chart Data
+            // ✅ Find Actual Price Closest Match
+            const actualPrice = findClosestMatch(formData);
+            console.log("✅ Closest Actual Price (USD):", actualPrice);
+
+            // ✅ Update Chart
             setChartData({
                 labels: ["Actual Price", "Predicted Price"],
                 datasets: [
                     {
-                        label: "Price ($1000s)",
-                        data: [
-                            data.length > 0 ? data[0]["Price (in $1000)"] : 0,
-                            predicted
-                        ],
+                        label: "Price (USD)",
+                        data: [actualPrice, predicted],
                         backgroundColor: ["rgba(75, 192, 192, 0.6)", "rgba(255, 99, 132, 0.6)"]
                     }
                 ]
@@ -131,13 +155,13 @@ const App = () => {
         }
     };
 
-    // ✅ Handle feedback submission
+    // ✅ Handle Feedback
     const handleFeedbackSubmit = (feedback) => {
         setFeedbackList([...feedbackList, feedback]);
         console.log("📌 New Feedback Received:", feedback);
     };
 
-    // ✅ Clear stored model
+    // ✅ Clear Model
     const clearModel = () => {
         localStorage.removeItem("trainedModel");
         setTrainedNet(null);
@@ -150,32 +174,24 @@ const App = () => {
             <h1 className="text-white mb-4">Real Estate Price Prediction</h1>
 
             <div className="card p-4 shadow-lg">
-                
-                {/* Prediction Form Component */}
                 <PredictionForm onPredict={handlePredict} />
-
                 {error && <p className="text-danger mt-2">{error}</p>}
 
-                {predictedPrice && <h2 className="text-success mt-3">Predicted Price: ${predictedPrice.toFixed(2)}</h2>}
-                
+                {predictedPrice && <h2 className="text-success mt-3">Predicted Price: ${predictedPrice}</h2>}
 
                 {chartData && (
                     <div className="mt-4">
-                        <h3 className="text-primary">📊 Prediction Comparison</h3>
+                        <h3 className="text-primary">📊 Prediction vs Actual</h3>
                         <div style={{ width: "500px", margin: "auto" }}>
                             <Bar data={chartData} options={{ responsive: true, maintainAspectRatio: false }} />
                         </div>
                     </div>
                 )}
 
-                <button type="button" className="btn btn-danger mt-3" onClick={clearModel}>
-                    Clear Stored Model
-                </button>
+                <button type="button" className="btn btn-danger mt-3" onClick={clearModel}>Clear Stored Model</button>
 
-                {/* Feedback Component */}
                 <Feedback onSubmitFeedback={handleFeedbackSubmit} />
 
-                {/* Display user feedback */}
                 {feedbackList.length > 0 && (
                     <div className="mt-3">
                         <h4>🗣 User Feedback</h4>
